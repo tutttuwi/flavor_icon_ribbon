@@ -1,0 +1,16 @@
+name: flavor_icon_ribbon
+description: Draw environment ribbons on existing Flutter Android and iOS launcher PNGs, with deterministic generation and a read-only CI check.
+version: 0.1.0
+repository: https://github.com/tutttuwi/flavor_icon_ribbon
+environment:
+  sdk: '>=3.8.0 <4.0.0'
+dependencies:
+  args: ^2.6.0
+  collection: ^1.19.0
+  image: ^4.5.4
+  path: ^1.9.1
+  yaml: ^3.1.3
+dev_dependencies:
+  test: ^1.26.0
+executables:
+  flavor_icon_ribbon:

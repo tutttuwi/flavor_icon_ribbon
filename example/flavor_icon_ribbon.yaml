@@ -1,0 +1,11 @@
+source: assets/img/icon.png
+platforms: [android, ios]
+flavors:
+  dev:
+    label: DEV
+    background: '#F97316'
+  stg:
+    label: STG
+    background: '#2563EB'
+  prod:
+    label: null
