@@ -1,16 +1,17 @@
 import 'package:image/image.dart';
 
-/// リボンのラベル用ドット文字（5x7）。
+/// 5×7 dot glyphs for ribbon labels.
 ///
-/// 同梱のビットマップフォントは 48px 固定で、縮小すると字が潰れる。ここでは
-/// ラベルに使う文字だけを 1 ドット = 整数 px の太さで持ち、出力サイズごとに
-/// 整数倍で描く。mdpi（48px）でも線幅が 1px 以上になる。
+/// A bundled bitmap font is fixed at 48 px and collapses when scaled down.
+/// These glyphs store only the letters used on labels, at an integer pixel
+/// thickness, and are drawn at an integer multiple of the output size. Even
+/// mdpi (48 px) keeps a stroke of at least 1 px.
 ///
-/// 新しいラベルに使う文字を足すときは [_glyphs] に 5x7 の字形を足す。
+/// To support another letter, add a 5×7 glyph to [_glyphs].
 const labelGlyphColumns = 5;
 const labelGlyphRows = 7;
 
-/// 文字間に空けるドット数。
+/// Dots of space between glyphs.
 const _glyphGap = 1;
 
 const _glyphs = <String, List<String>>{
@@ -42,7 +43,9 @@ const _glyphs = <String, List<String>>{
   'Z': ['#####', '....#', '...#.', '..#..', '.#...', '#....', '#####'],
 };
 
-/// [text] を描くのに必要なドット数の幅。字形が無い文字があれば [ArgumentError]。
+/// Width, in dots, needed to draw [text].
+///
+/// Throws [ArgumentError] when [text] contains a character with no glyph.
 int labelColumns(String text) {
   if (text.isEmpty) return 0;
   for (final char in text.split('')) {
@@ -50,16 +53,17 @@ int labelColumns(String text) {
       throw ArgumentError.value(
         text,
         'text',
-        'ラベルの文字 "$char" の字形が tool/flavor_icon_label_font.dart にありません',
+        'No glyph for "$char" in flavor_icon_label_font.dart',
       );
     }
   }
   return text.length * labelGlyphColumns + (text.length - 1) * _glyphGap;
 }
 
-/// [text] を 1 ドット [scale] px で描いた横向きの画像（透明背景）。
+/// Horizontal image of [text] at [scale] pixels per dot, on a transparent
+/// background.
 ///
-/// [text] が空なら `null`。
+/// Returns `null` when [text] is empty.
 Image? renderDotLabel(String text, {required int scale, required Color color}) {
   final columns = labelColumns(text);
   if (columns == 0) return null;
@@ -69,8 +73,8 @@ Image? renderDotLabel(String text, {required int scale, required Color color}) {
     height: labelGlyphRows * scale,
     numChannels: 4,
   );
-  // 透明部分も文字色にしておく。黒い透明のままだと、回転で縁を補間したときに
-  // 文字の縁が暗い色に混ざって汚れる。
+  // Paint transparent pixels in the label color at alpha 0. Leaving them black
+  // makes rotation interpolation darken the glyph edges.
   fill(
     image,
     color: ColorRgba8(color.r.toInt(), color.g.toInt(), color.b.toInt(), 0),

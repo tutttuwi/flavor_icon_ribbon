@@ -4,32 +4,37 @@ import 'package:image/image.dart';
 
 import 'flavor_icon_label_font.dart';
 
-/// flavor ごとのリボン意匠。
-///
-
+/// Colors and label for one environment ribbon.
 class RibbonStyle {
-  /// [label] は A–Z の 1–3 文字。[foreground] を省略すると白。
+  /// Creates a ribbon style.
+  ///
+  /// [label] is 1–3 letters from `A` to `Z`. [foreground] is white when omitted.
   RibbonStyle({
     required this.label,
     required this.background,
     Color? foreground,
   }) : foreground = foreground ?? ColorRgba8(255, 255, 255, 255);
 
-  /// 帯に描く文字列。`flavor_icon_label_font.dart` にある大文字だけを描ける。
+  /// Text drawn on the band.
+  ///
+  /// Only the uppercase letters in `flavor_icon_label_font.dart` can be drawn.
   final String label;
 
-  /// 帯の塗り色。
+  /// Fill color of the band.
   final Color background;
 
-  /// 文字色。
+  /// Color of the label.
   final Color foreground;
 }
 
-/// マスタアイコンの一辺（px）。リボン無し（prod）の縮小元。
-/// リボン付きは出力先の解像度ごとに描く。
+/// Side length of the master icon, in pixels.
+///
+/// Unbadged flavors are scaled down from this size. Badged flavors are drawn
+/// at each output resolution.
 const masterIconSize = 1024;
 
-/// リボンの寸法（すべて px）。距離は右下隅から対角線方向に測る。
+/// Ribbon measurements, in pixels. Distances run along the diagonal from the
+/// bottom-right corner.
 class RibbonLayout {
   const RibbonLayout({
     required this.bandThickness,
@@ -39,33 +44,40 @@ class RibbonLayout {
     required this.labelCenterOffset,
   });
 
-  /// 帯の太さ。
+  /// Thickness of the band.
   final double bandThickness;
 
-  /// 隅から帯の中心線までの距離。帯の外側は隅に接する（= 太さの半分）。
+  /// Distance from the corner to the center line of the band.
+  ///
+  /// The outer edge of the band touches the corner, so this is half the
+  /// thickness.
   final double bandCenterOffset;
 
-  /// ラベルの高さと幅（ドット文字。整数 px）。
+  /// Label height and width, in integer pixels of the dot font.
   final double labelHeight;
   final double labelWidth;
 
-  /// 隅からラベルの中心までの距離。帯の中心より内側（アイコンの中心寄り）。
+  /// Distance from the corner to the center of the label.
+  ///
+  /// This sits inward of the band center, toward the middle of the icon.
   final double labelCenterOffset;
 }
 
-/// 一辺 [size] のアイコンに [style] のリボンを描くときの寸法。
+/// Layout for drawing [style] on an icon of side [size].
 ///
-/// 帯を隅に付けると、帯の中心線で使える長さは短くなる（隅に近いほど弦が短い）。
-/// そこで帯を太くし、ラベルを帯の内側寄りに置いて、ラベルの外側の端でも弦の長さが
-/// 足りるようにする。
+/// Placing the band against the corner shortens the usable length along its
+/// center line, because the chord is shorter closer to the corner. The band
+/// is therefore drawn thick, and the label sits toward the inner edge, so the
+/// outer end of the label still fits on the chord.
 RibbonLayout ribbonLayout(RibbonStyle style, {int size = masterIconSize}) {
   final thickness = size * _bandHeight;
   final bandCenter = thickness / 2;
   final labelCenter = bandCenter + thickness * _labelShift;
 
-  // ラベルの 1 ドットは整数 px にする（小さい出力でも線幅が 1px 以上になる）。
-  // 目標の高さから始めて、隅側の端での弦の長さに収まる最大の倍率を探す。
-  // 隅から距離 d の位置で正方形を -45° に切った弦の長さは 2d。
+  // Each label dot is an integer number of pixels, so a small output still has
+  // a stroke at least 1 px wide. Start from the target height and search
+  // downward for the largest scale that fits the chord at the outer end.
+  // A square cut at -45° has a chord of length 2d at distance d from the corner.
   final columns = labelColumns(style.label);
   var scale = math.max(
     1,
@@ -86,11 +98,16 @@ RibbonLayout ribbonLayout(RibbonStyle style, {int size = masterIconSize}) {
   );
 }
 
-/// [base] の右下隅に [style] のリボンを合成した新しい画像を返す。
+/// Returns a new square image with [style] drawn on the bottom-right of [base].
 ///
-/// [base] は変更しない。返り値は一辺 [size] の正方形。
-/// [base] の透過部分（角丸など）にはリボンがはみ出さないよう、合成後に元の
-/// アルファをマスクとして再適用する。
+/// [base] is left unchanged. The result has side length [size], which defaults
+/// to 1024. A non-positive [size], or a [RibbonStyle.label] that is
+/// not 1–3 letters `A`–`Z`, throws [ArgumentError].
+///
+/// Sizes below 48 are drawn at 48 pixels and then downscaled, so the label
+/// stroke is at least one pixel before scaling. After compositing, the original
+/// alpha is reapplied as a mask, which keeps the ribbon inside transparent
+/// regions such as rounded corners.
 Image composeRibbonIcon(
   Image base,
   RibbonStyle style, {
@@ -118,8 +135,9 @@ Image composeRibbonIcon(
 
   _fillBand(master, style, layout);
 
-  // ラベルは横向きに描いてから -45° 回転し、隅から labelCenterOffset の位置に
-  // 中心を合わせて重ねる。回転後に描くと文字自体が斜めに歪むため。
+  // Draw the label upright, rotate it by -45°, then center it
+  // labelCenterOffset from the corner. Drawing after rotation would shear
+  // the glyphs.
   final label = _renderLabel(style, layout);
   if (label != null) {
     final rotated = copyRotate(
@@ -139,19 +157,25 @@ Image composeRibbonIcon(
   return _applyAlphaMask(master, _toSquare(base, size));
 }
 
-/// 帯の太さ（アイコン一辺に対する比率）。帯の外側は右下の隅に接する。
+/// Band thickness as a fraction of the icon side. The outer edge meets the
+/// bottom-right corner.
 const _bandHeight = 0.40;
 
-/// ラベルの中心を帯の中心からどれだけ内側へずらすか（帯の太さに対する比率）。
+/// How far the label center moves inward from the band center, as a fraction
+/// of the band thickness.
 const _labelShift = 0.25;
 
-/// ラベルの高さ（帯の太さに対する比率。フォントの行の高さ基準）。
+/// Label height as a fraction of the band thickness. This is the target for
+/// the font's row height.
 const _labelHeightRatio = 0.40;
 
-/// 弦の長さのうちラベルに使う割合（両端の余白）。
+/// Fraction of the chord length used by the label. The rest is margin at both
+/// ends.
 const _labelWidthMargin = 0.85;
 
-/// [image] を一辺 [size] の正方形へ正規化する（既にその寸法なら複製のみ）。
+/// Normalizes [image] to a square of side [size].
+///
+/// An image that is already that size is only copied.
 Image _toSquare(Image image, int size) {
   if (image.width == size && image.height == size) {
     return image.convert(numChannels: 4);
@@ -164,10 +188,12 @@ Image _toSquare(Image image, int size) {
   );
 }
 
-/// 右下隅から対角線方向に帯の太さまでの範囲を [style] の帯色で塗る。
+/// Fills the diagonal band of [style], from the bottom-right corner out to the
+/// band thickness.
 ///
-/// 帯の外側は隅に接するので、形は右下の三角形になる。境界の 1px は距離に応じて
-/// 不透明度を下げ、ギザギザを抑える。
+/// The outer edge meets the corner, so the shape is the bottom-right triangle.
+/// The boundary pixel's opacity follows the remaining distance, which softens
+/// the stair-step edge.
 void _fillBand(Image master, RibbonStyle style, RibbonLayout layout) {
   final size = master.width;
   final color = style.background;
@@ -175,7 +201,8 @@ void _fillBand(Image master, RibbonStyle style, RibbonLayout layout) {
   final start = math.max(0, (size - reach).floor() - 1);
   for (var y = start; y < size; y++) {
     for (var x = start; x < size; x++) {
-      // 隅 (size, size) から対角線方向に測った距離（ピクセル中心で評価）。
+      // Distance along the diagonal from the corner (size, size), measured at
+      // the pixel center.
       final distance = ((size - x - 0.5) + (size - y - 0.5)) / math.sqrt2;
       final coverage = (layout.bandThickness - distance + 0.5).clamp(0.0, 1.0);
       if (coverage <= 0) continue;
@@ -189,14 +216,16 @@ void _fillBand(Image master, RibbonStyle style, RibbonLayout layout) {
   }
 }
 
-/// [layout] の整数倍で [style] のドット文字を横向きに描いた画像（透明背景）。
+/// Horizontal dot-font image of [style], scaled by the integer size in
+/// [layout]. The background is transparent.
 Image? _renderLabel(RibbonStyle style, RibbonLayout layout) {
   if (labelColumns(style.label) <= 0) return null;
   final scale = math.max(1, (layout.labelHeight / labelGlyphRows).round());
   return renderDotLabel(style.label, scale: scale, color: style.foreground);
 }
 
-/// [target] のアルファを [mask] のアルファで抑える（元画像の形からはみ出させない）。
+/// Caps [target]'s alpha by [mask]'s alpha so the ribbon stays inside the
+/// original image shape.
 Image _applyAlphaMask(Image target, Image mask) {
   for (final pixel in target) {
     final maskAlpha = mask.getPixel(pixel.x, pixel.y).a;

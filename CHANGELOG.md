@@ -1,3 +1,9 @@
+## Unreleased
+
+- Document `RibbonStyle` and `composeRibbonIcon` in English.
+- Add a Japanese README.
+- List pub.dev topics and a screenshot of the sample icons.
+
 ## 0.1.1
 
 - Add a runnable example for the drawing API and the sample CLI config.

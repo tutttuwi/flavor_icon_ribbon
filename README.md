@@ -1,5 +1,7 @@
 # flavor_icon_ribbon
 
+[日本語](README.ja.md)
+
 Generate DEV, STG or QA launcher icons from one square PNG. This development-time Dart CLI updates existing Android and iOS PNGs at their native sizes. Generated icons can be committed and used by local builds and CI. Flutter, Ruby and ImageMagick are not required to run the generator.
 
 ![DEV, STG and PROD icons at 48 pixels](example/preview.png)
@@ -59,7 +61,7 @@ flavors:
 
 - Android defaults to `android/app/src/<flavor>/res/mipmap-<density>/ic_launcher.png`. Supply existing square PNGs. Transparency is preserved. The CLI checks the selected resources and standard main resources for matching adaptive XML, alternate round icons and unsupported resource qualifiers. Builds using other source sets or custom manifest aliases need separate verification.
 - iOS defaults to `ios/Runner/Assets.xcassets/<flavor>AppIcon.appiconset`. Only filenames referenced in Contents.json are updated. Transparent source artwork is composited over ios_background (white by default) for opaque iOS output. Separate appearance variants (Dark/Tinted) require separate artwork and cause a validation error.
-- To process just one platform, set platforms to [ios] or [android]. This version works with classic PNG launcher assets. Flavor creation, manifest changes, Icon Composer, adaptive foregrounds and themed icon generation are outside its scope.
+- To process just one platform, set `platforms` to `ios` or `android`. This version works with classic PNG launcher assets. Flavor creation, manifest changes, Icon Composer, adaptive foregrounds and themed icon generation are outside its scope.
 - All inputs are validated before modification. A changed PNG is replaced with a same-directory rename. If interrupted during replacement, rerun to finish. Keep the consuming app's pubspec.lock in version control so local and CI builds use the same image encoder.
 
 ## CI
@@ -72,4 +74,8 @@ Import `package:flavor_icon_ribbon/flavor_icon_ribbon.dart` and call `composeRib
 
 ## Development
 
-Run `dart pub get`, `dart analyze` and `dart test`. The renderer originated in tutttuwi/flutter-template.
+Contributor setup, layout, and pull requests are in [CONTRIBUTING.md](CONTRIBUTING.md). From this repository, run `dart pub get`, `dart analyze`, and `dart test`. The renderer originated in tutttuwi/flutter-template.
+
+## License
+
+[MIT](LICENSE)

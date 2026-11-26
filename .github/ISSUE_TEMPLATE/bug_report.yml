@@ -1,0 +1,37 @@
+name: Bug report
+description: A problem running the CLI or calling the drawing API.
+title: "bug: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting this. A short config snippet is enough. Do not attach private artwork.
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      description: The version from the app's pubspec.lock, or the git commit if you ran from source.
+      placeholder: 0.1.1
+    validations:
+      required: true
+  - type: input
+    id: sdk
+    attributes:
+      label: Dart SDK
+      description: Output of `dart --version`.
+      placeholder: Dart SDK version 3.13.0
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The command, the relevant YAML (paths and colors only), and the exit code or exception.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
