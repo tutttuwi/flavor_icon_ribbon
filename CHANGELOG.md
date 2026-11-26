@@ -1,3 +1,9 @@
+## 0.1.1
+
+- Add a runnable example for the drawing API and the sample CLI config.
+- Brace flow-control statements so analysis matches the core lints.
+- Document `RibbonStyle`'s constructor.
+
 ## 0.1.0
 
 - Generate environment ribbons for existing Android and iOS launcher PNGs.

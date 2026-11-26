@@ -23,13 +23,15 @@ String relativePath(dynamic value, String root) {
   if (value is! String ||
       value.isEmpty ||
       p.isAbsolute(value) ||
-      p.split(value).contains('..'))
+      p.split(value).contains('..')) {
     invalid('Expected a project-relative path: $value');
+  }
   final path = p.normalize(p.join(root, value));
   var current = path;
   while (current != root) {
-    if (FileSystemEntity.isLinkSync(current))
+    if (FileSystemEntity.isLinkSync(current)) {
       invalid('Symbolic link: $current');
+    }
     current = p.dirname(current);
   }
   return path;
@@ -100,19 +102,22 @@ List<File> iosTargets(String root, String name, Map config) {
     config['ios_set'] ?? 'ios/Runner/Assets.xcassets/${name}AppIcon.appiconset',
     root,
   );
-  if (!dir.endsWith('.appiconset'))
+  if (!dir.endsWith('.appiconset')) {
     invalid('Expected a .appiconset directory: $dir');
+  }
   final manifest = File(
     relativePath(p.relative(p.join(dir, 'Contents.json'), from: root), root),
   );
   final data = jsonDecode(manifest.readAsStringSync());
-  if (data is! Map || data['images'] is! List)
+  if (data is! Map || data['images'] is! List) {
     invalid('Invalid icon catalog: $dir');
+  }
   final names = <String>{};
   for (final entry in data['images']) {
     if (entry is! Map) invalid('Invalid catalog image: $dir');
-    if (entry.containsKey('appearances'))
+    if (entry.containsKey('appearances')) {
       invalid('Appearance-specific iOS catalog: $dir');
+    }
     final file = entry['filename'];
     if (file == null) continue;
     if (file is! String || file != p.basename(file) || !file.endsWith('.png')) {
@@ -141,22 +146,26 @@ int generate(
   }, 'config');
   final source = File(relativePath(config['source'], root));
   final base = img.decodePng(source.readAsBytesSync());
-  if (base == null || base.width != base.height)
+  if (base == null || base.width != base.height) {
     invalid('Expected a square PNG: ${source.path}');
+  }
   final platforms = config['platforms'] ?? ['android', 'ios'];
   if (platforms is! List ||
       platforms.isEmpty ||
-      platforms.any((v) => v != 'android' && v != 'ios'))
+      platforms.any((v) => v != 'android' && v != 'ios')) {
     invalid('Invalid platforms.');
+  }
   final flavors = config['flavors'];
-  if (flavors is! Map || flavors.isEmpty)
+  if (flavors is! Map || flavors.isEmpty) {
     invalid('Define at least one flavor.');
+  }
   final changed = <String, Uint8List>{};
   final used = <String>{source.path};
   for (final item in flavors.entries) {
     final name = item.key;
-    if (name is! String || !RegExp(r'^[a-zA-Z0-9_-]+$').hasMatch(name))
+    if (name is! String || !RegExp(r'^[a-zA-Z0-9_-]+$').hasMatch(name)) {
       invalid('Invalid flavor: $name');
+    }
     final options = fields(item.value, {
       'label',
       'background',
@@ -166,8 +175,9 @@ int generate(
       'android_icon',
       'ios_set',
     }, name);
-    if (!options.containsKey('label'))
+    if (!options.containsKey('label')) {
       invalid('Set $name.label explicitly (use null for production).');
+    }
     final label = options['label'];
     if (label != null &&
         (label is! String || !RegExp(r'^[A-Z]{1,3}$').hasMatch(label))) {
@@ -189,12 +199,14 @@ int generate(
     ];
     final cache = <(int, bool), Uint8List>{};
     for (final (target, isIos) in targets) {
-      if (!used.add(target.path))
+      if (!used.add(target.path)) {
         invalid('Shared output or source collision: ${target.path}');
+      }
       final bytes = target.readAsBytesSync();
       final old = img.decodePng(bytes);
-      if (old == null || old.width != old.height)
+      if (old == null || old.width != old.height) {
         invalid('Expected square PNG: ${target.path}');
+      }
       final output = cache.putIfAbsent((old.width, isIos && base.hasAlpha), () {
         final image = style == null
             ? img.copyResize(
@@ -214,8 +226,9 @@ int generate(
           base.hasAlpha ? image : image.convert(numChannels: 3),
         );
       });
-      if (!const ListEquality<int>().equals(bytes, output))
+      if (!const ListEquality<int>().equals(bytes, output)) {
         changed[target.path] = output;
+      }
     }
   }
   for (final entry in changed.entries) {

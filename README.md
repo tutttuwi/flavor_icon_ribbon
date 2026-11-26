@@ -68,7 +68,7 @@ After dependency resolution, run `dart run flavor_icon_ribbon --check`. Exit cod
 
 ## Drawing API
 
-Import `package:flavor_icon_ribbon/flavor_icon_ribbon.dart` and call `composeRibbonIcon(image, RibbonStyle(label: 'UAT', background: color), size: 48)`. It returns a new image. The CLI performs platform-specific output handling.
+Import `package:flavor_icon_ribbon/flavor_icon_ribbon.dart` and call `composeRibbonIcon(image, RibbonStyle(label: 'UAT', background: color), size: 48)`. It returns a new image. The CLI performs platform-specific output handling. [`example/main.dart`](example/main.dart) writes a sample PNG.
 
 ## Development
 

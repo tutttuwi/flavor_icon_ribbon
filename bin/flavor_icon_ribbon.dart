@@ -23,8 +23,9 @@ void main(List<String> args) {
       stdout.writeln(parser.usage);
       return;
     }
-    if (options.rest.isNotEmpty)
+    if (options.rest.isNotEmpty) {
       throw const FormatException('Unexpected positional arguments.');
+    }
     final check = options['check'] as bool;
     final count = generate(
       File(options['config'] as String),

@@ -8,6 +8,7 @@ import 'flavor_icon_label_font.dart';
 ///
 
 class RibbonStyle {
+  /// [label] は A–Z の 1–3 文字。[foreground] を省略すると白。
   RibbonStyle({
     required this.label,
     required this.background,
